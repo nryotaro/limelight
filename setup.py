@@ -6,7 +6,9 @@ setup(name='limelight',
       version="0.0.1",
       packages=find_packages(),
       install_requires=[
-          'torch'
+          'torch',
+          'requests',
+          'tqdm'
       ],
       entry_points={'console_scripts': ['limelight=limelight:main']},
       extras_require={
