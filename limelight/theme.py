@@ -37,6 +37,8 @@ class Theme(enum.Enum):
             directory name.
 
         """
+        if self == self.COMP_OS_MS_WINDOWS_MISC:
+            return 'comp.os.ms-windows.misc'
         return self.name.replace('_', '.').lower()
 
     @classmethod
