@@ -87,8 +87,7 @@ class Extractor:
 
 
 class Initializer:
-    """
-    """
+    """Download and unarcihve 20newsgroups."""
 
     def __init__(self, directory):
         """Take the path of a directory to place the dataset.
