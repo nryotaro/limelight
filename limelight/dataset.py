@@ -1,28 +1,144 @@
-"""
-"""
+"""Expose classes relevant to dataset."""
 import os
-from enum import Enum
-from dataclasses import dataclass
+import os.path
 import re
+from dataclasses import dataclass
+from typing import List, Callable
+import torch.utils.data as d
+from .theme import Theme
+from .types import T
+from greentea.text import Text
+from greentea.first_class_collection import FirstClassSequence
 
 
-class Splitter:
+@dataclass
+class DataPointId:
+    """Identify a datapoint."""
+
+    datapoint_id: int
+
+    def get_raw(self) -> int:
+        """Return the primitive value."""
+        return self.datapoint_id
+
+    def get_as_str(self) -> str:
+        """Return the id as `str` value."""
+        return str(self.get_raw())
+
+
+@dataclass
+class DataPointMeta:
+    """A metadata of a datapoint.
+
+    Attributes
+    ----------
+    datapoint_id
+
+    theme
+
     """
+
+    datapoint_id: DataPointId
+    theme: Theme
+
+    def combine(function: Callable[[DataPointId, Theme], T]) -> T:
+        """Trans form the pair by `function`."""
+        return function(self.datapoint_id, self.theme)
+
+    def get_theme_name(self) -> str:
+        """See :py:meth:`Theme.get_theme_name`."""
+        return self.theme.get_theme_name()
+
+    def get_id_str(self) -> str:
+        """See :py:meth:`DataPointId.get_as_str`."""
+        return self.get_id_str()
+
+
+@dataclass
+class DataPointSource:
+    """Represent the location of a data point."""
+
+    directory: str
+    data_point_meta: DataPointMeta
+
+    def read_text(self) -> Text:
+        """Read a text from a file."""
+        point_id = self.data_point_meta.get_id_str()
+        theme = self.data_point_meta.get_theme_name()
+        path = os.path.join(self.directory, theme, point_id)
+        with open(path) as f:
+            return Text(f.read())
+
+
+@dataclass
+class DataPointSources(FirstClassSequence):
+    """A collection of :py:class:`DataPointSource`s."""
+
+    items: List[DataPointSource]
+
+
+class TextTransformer:
+    """Text reader."""
+
+    def __call__(self, data_point_source: DataPointSource) -> Text:
+        """Read text from a source."""
+        return data_point_source.read_text()
+
+
+class RawTransformer:
+    """Return `str`."""
+
+    def __call__(self, text: Text) -> str:
+        """Transfrom :py:class:`Text` to str."""
+        return text.text
+
+
+class NopTransformer:
+    """Identity function."""
+
+    def __call__(self, t: T) -> T:
+        """Do nothing."""
+        return t
+
+
+@dataclass
+class Dataset(d.Dataset):
+    """20newsgroups dataset.
+
+    Attributes
+    ----------
+    sources: DataPointSources
+
+    transformer: Callable[[DataPointSource], T]
+
     """
 
-    def __init__(self, directory: str, seed=None):
-        """
+    sources: DataPointSources
+    transformer: Callable[[DataPointSource], T]
 
-        Parameters
-        ----------
-        directory: str
+    def __len__(self) -> int:
+        """Return the size."""
+        return len(self.sources)
 
-        seed : int or None
-            used by a random number generator.
+    def __getitem__(self, index):
+        """Access the specified item."""
+        found = self.sources.__getitem__(index)
+        if isinstance(found, DataPointSource):
+            return self.transformer(found)
+        return Dataset(found, self.transformer)
 
-        """
+    @classmethod
+    def create(cls, dirname: str, transformer=NopTransformer()):
+        """Create :py:class:`Dataset` from a directory."""
+        sources = DataPointSources(
+            [data_point_meta for theme in Theme
+             for data_point_meta in cls._load_ids(dirname, theme)])
+        return Dataset(sources, transformer)
 
-    def split(self):
-        """
-        """
-        os.listdir('./hoge')[0].startswith('.')
+    @classmethod
+    def _load_ids(cls, dirname, theme: Theme) -> List[DataPointMeta]:
+        theme_dir = os.path.join(dirname, theme.get_theme_name())
+        return [DataPointSource(dirname,
+                                DataPointMeta(DataPointId(point_id), theme))
+                for point_id in os.listdir(theme_dir)
+                if re.match(r'\d+', point_id)]

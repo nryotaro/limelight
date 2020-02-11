@@ -1,7 +1,7 @@
 """
 """
 import enum
-import re
+from typing import List
 
 
 class Theme(enum.Enum):
@@ -28,14 +28,24 @@ class Theme(enum.Enum):
     MISC_FORSALE = 18
     TALK_RELIGION_MISC = 19
 
-    def get_theme_name(self):
-        """
+    def get_theme_name(self) -> str:
+        """Get the name of the directory.
+
+        Returns
+        -------
+        str
+            directory name.
+
         """
         return self.name.replace('_', '.').lower()
 
+    @classmethod
+    def get_themename_list(cls) -> List[str]:
+        """Return the names of the themes."""
+        return [theme.get_theme_name() for theme in cls]
+
     def is_same(self, theme_name: str) -> bool:
-        """
-        """
+        """Return `True` if `them_name` is the name of the directory."""
         return self.get_theme_name() == theme_name
 
     @classmethod
@@ -45,4 +55,3 @@ class Theme(enum.Enum):
         if len(found) == 1:
             return found[0]
         raise ValueError(f'{theme} is not a theme name')
-
