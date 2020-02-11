@@ -127,6 +127,10 @@ class Dataset(d.Dataset):
             return self.transformer(found)
         return Dataset(found, self.transformer)
 
+    def update_transformer(self, transformer: Callable[[DataPointSource], T]):
+        """Update :py:attr:`transformer`."""
+        return Dataset(self.sources, transformer)
+
     @classmethod
     def create(cls, dirname: str, transformer=NopTransformer()):
         """Create :py:class:`Dataset` from a directory."""
