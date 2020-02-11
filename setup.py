@@ -10,7 +10,8 @@ setup(name='limelight',
           'greentea==3.5.2',
           'click',
           'requests',
-          'tqdm'
+          'tqdm',
+          'scikit-learn'
       ],
       entry_points={'console_scripts': ['limelight=limelight:main']},
       extras_require={

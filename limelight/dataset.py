@@ -1,6 +1,7 @@
 """Expose classes relevant to dataset."""
 import os
 import os.path
+import csv
 import re
 from dataclasses import dataclass
 from typing import List, Callable
@@ -41,7 +42,7 @@ class DataPointMeta:
     datapoint_id: DataPointId
     theme: Theme
 
-    def combine(function: Callable[[DataPointId, Theme], T]) -> T:
+    def combine(self, function: Callable[[DataPointId, Theme], T]) -> T:
         """Trans form the pair by `function`."""
         return function(self.datapoint_id, self.theme)
 
@@ -52,6 +53,20 @@ class DataPointMeta:
     def get_id_str(self) -> str:
         """See :py:meth:`DataPointId.get_as_str`."""
         return self.get_id_str()
+
+    def return_as_dict(self) -> dict:
+        """Return a dict that represents this object."""
+        return {
+            'theme': self.get_theme_name(),
+            'id': self.datapoint_id.get_raw()
+        }
+
+    @classmethod
+    def from_dict(cls, source: dict):
+        """Create :py:class:`DataPointMeta` from a dict value."""
+        data_point_id = DataPointId(source['id'])
+        theme = Theme.create(source['theme'])
+        return DataPointMeta(data_point_id, theme)
 
 
 @dataclass
@@ -69,12 +84,46 @@ class DataPointSource:
         with open(path) as f:
             return Text(f.read())
 
+    def return_as_dict(self) -> dict:
+        """Return a dict the represents this object."""
+        dict_value = self.return_as_dict()
+        dict_value['directory'] = self.directory
+        return dict_value
+
+    def from_dict(self, source: dict):
+        """Create :py:class:`DataPointSource` from a dict value."""
+        meta = DataPointMeta.from_dict(source)
+        return DataPointSource(source['directory'], meta)
+
 
 @dataclass
 class DataPointSources(FirstClassSequence):
     """A collection of :py:class:`DataPointSource`s."""
 
     items: List[DataPointSource]
+
+    def save_csv(self, filename) -> None:
+        """Write them in csv format."""
+        with open(filename, 'w') as csvfile:
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=self._fieldnames())
+            writer.writeheader()
+
+        for source in self.items:
+            writer.writerow(source.return_as_dict())
+
+    @classmethod
+    def read_csv(cls, filename: str):
+        """Read a file from `filename` into :py:class:`DataPointSources`."""
+        with open(filename) as csvfile:
+            reader = csv.DictReader(csvfile, fieldnames=cls._fieldnames())
+            return DataPointSources(
+                [DataPointSource.from_dict(record) for record in reader])
+
+    @classmethod
+    def _fieldnames(cls):
+        return ['directory', 'theme', 'id']
 
 
 class TextTransformer:
@@ -146,3 +195,16 @@ class Dataset(d.Dataset):
                                 DataPointMeta(DataPointId(point_id), theme))
                 for point_id in os.listdir(theme_dir)
                 if re.match(r'\d+', point_id)]
+
+    def save_sources_as_csv(self, filename) -> None:
+        """Save :py:attr:`sources` as a CSV file."""
+        self.sources.save_csv(filename)
+
+    @classmethod
+    def read_sources_from_csv(
+            cls,
+            filename: str,
+            transformer=NopTransformer()):
+        """Read :py:class:`Dataset` from a file."""
+        sources = DataPointSources.read_csv(filename)
+        return Dataset(sources, transformer)
