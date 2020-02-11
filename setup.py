@@ -7,10 +7,11 @@ setup(name='limelight',
       packages=find_packages(),
       install_requires=[
           'torch',
-          'greentea==3.5.2',
+          'greentea==3.5.3',
           'click',
           'requests',
           'tqdm',
+          'torchvision',
           'scikit-learn'
       ],
       entry_points={'console_scripts': ['limelight=limelight:main']},

@@ -8,6 +8,7 @@ from typing import List, Callable
 import torch.utils.data as d
 from .theme import Theme
 from .types import T
+from sklearn.model_selection import train_test_split
 from greentea.text import Text
 from greentea.first_class_collection import FirstClassSequence
 
@@ -64,7 +65,7 @@ class DataPointMeta:
     @classmethod
     def from_dict(cls, source: dict):
         """Create :py:class:`DataPointMeta` from a dict value."""
-        data_point_id = DataPointId(source['id'])
+        data_point_id = DataPointId(int(source['id']))
         theme = Theme.create(source['theme'])
         return DataPointMeta(data_point_id, theme)
 
@@ -86,11 +87,12 @@ class DataPointSource:
 
     def return_as_dict(self) -> dict:
         """Return a dict the represents this object."""
-        dict_value = self.return_as_dict()
+        dict_value = self.data_point_meta.return_as_dict()
         dict_value['directory'] = self.directory
         return dict_value
 
-    def from_dict(self, source: dict):
+    @classmethod
+    def from_dict(cls, source: dict):
         """Create :py:class:`DataPointSource` from a dict value."""
         meta = DataPointMeta.from_dict(source)
         return DataPointSource(source['directory'], meta)
@@ -102,6 +104,11 @@ class DataPointSources(FirstClassSequence):
 
     items: List[DataPointSource]
 
+    @property
+    def sequence(self):
+        """Return :py:attr:`items`."""
+        return self.items
+
     def save_csv(self, filename) -> None:
         """Write them in csv format."""
         with open(filename, 'w') as csvfile:
@@ -109,7 +116,9 @@ class DataPointSources(FirstClassSequence):
                 csvfile,
                 fieldnames=self._fieldnames())
             writer.writeheader()
+            self._write(writer)
 
+    def _write(self, writer):
         for source in self.items:
             writer.writerow(source.return_as_dict())
 
@@ -129,7 +138,8 @@ class DataPointSources(FirstClassSequence):
 class TextTransformer:
     """Text reader."""
 
-    def __call__(self, data_point_source: DataPointSource) -> Text:
+    @classmethod
+    def __call__(cls, data_point_source: DataPointSource) -> Text:
         """Read text from a source."""
         return data_point_source.read_text()
 
@@ -137,7 +147,8 @@ class TextTransformer:
 class RawTransformer:
     """Return `str`."""
 
-    def __call__(self, text: Text) -> str:
+    @classmethod
+    def __call__(cls, text: Text) -> str:
         """Transfrom :py:class:`Text` to str."""
         return text.text
 
@@ -181,11 +192,12 @@ class Dataset(d.Dataset):
         return Dataset(self.sources, transformer)
 
     @classmethod
-    def create(cls, dirname: str, transformer=NopTransformer()):
+    def create(cls, dirname: str, transformer=NopTransformer):
         """Create :py:class:`Dataset` from a directory."""
+        abs_dirname = os.path.abspath(dirname)
         sources = DataPointSources(
             [data_point_meta for theme in Theme
-             for data_point_meta in cls._load_ids(dirname, theme)])
+             for data_point_meta in cls._load_ids(abs_dirname, theme)])
         return Dataset(sources, transformer)
 
     @classmethod
@@ -204,7 +216,13 @@ class Dataset(d.Dataset):
     def read_sources_from_csv(
             cls,
             filename: str,
-            transformer=NopTransformer()):
+            transformer=NopTransformer):
         """Read :py:class:`Dataset` from a file."""
         sources = DataPointSources.read_csv(filename)
         return Dataset(sources, transformer)
+
+    def train_test_split(self):
+        """Split dataset into train and test."""
+        train, test = train_test_split(self)
+        return Dataset(DataPointSources(train), self.transformer), \
+            Dataset(DataPointSources(test), self.transformer)
