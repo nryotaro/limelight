@@ -3,6 +3,7 @@ import os
 import os.path
 import csv
 import re
+import codecs
 from dataclasses import dataclass
 from collections.abc import Sequence
 from typing import List, Callable
@@ -91,7 +92,7 @@ class DataPointSource:
         point_id = self.data_point_meta.get_id_str()
         theme = self.data_point_meta.get_theme_name()
         path = os.path.join(self.directory, theme, point_id)
-        with open(path) as f:
+        with codecs.open(path, encoding='utf-8', errors='ignore') as f:
             return Text(f.read())
 
     def return_as_dict(self) -> dict:
@@ -198,7 +199,6 @@ class Dataset(d.Dataset, Sequence):
         """Access the specified item."""
         found = self.sources.__getitem__(index)
         if isinstance(found, DataPointSource):
-            print(self.transformer)
             return self.transformer(found)
         return Dataset(found, self.transformer)
 
