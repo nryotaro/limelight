@@ -2,7 +2,6 @@
 import click
 from greentea.log import LogConfiguration
 from torchvision.transforms import Compose
-import torch.utils.data.dataloader as d
 from .dataset import Dataset, DataPointSources, \
     TextTransformer, RawTransformer
 from .vectorizer import TfidfVectorizer
@@ -31,7 +30,7 @@ def split(dataset, train: str, test: str):
 @click.argument('location')
 def sparsevec(train: DataPointSources, location: str):
     """Train a sparse vectorizer."""
-    transformer = Compose([TextTransformer, RawTransformer])
+    transformer = Compose([TextTransformer(), RawTransformer()])
     texts = Dataset(train, transformer)
     vectorizer = TfidfVectorizer()
     vectorizer.fit(texts)

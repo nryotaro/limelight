@@ -54,7 +54,7 @@ class DataPointMeta:
 
     def get_id_str(self) -> str:
         """See :py:meth:`DataPointId.get_as_str`."""
-        return self.get_id_str()
+        return self.datapoint_id.get_as_str()
 
     def return_as_dict(self) -> dict:
         """Return a dict that represents this object."""
@@ -154,8 +154,7 @@ class DataPointSources(FirstClassSequence):
 class TextTransformer:
     """Text reader."""
 
-    @classmethod
-    def __call__(cls, data_point_source: DataPointSource) -> Text:
+    def __call__(self, data_point_source: DataPointSource) -> Text:
         """Read text from a source."""
         return data_point_source.read_text()
 
@@ -163,8 +162,7 @@ class TextTransformer:
 class RawTransformer:
     """Return `str`."""
 
-    @classmethod
-    def __call__(cls, text: Text) -> str:
+    def __call__(self, text: Text) -> str:
         """Transfrom :py:class:`Text` to str."""
         return text.text
 
@@ -200,6 +198,7 @@ class Dataset(d.Dataset, Sequence):
         """Access the specified item."""
         found = self.sources.__getitem__(index)
         if isinstance(found, DataPointSource):
+            print(self.transformer)
             return self.transformer(found)
         return Dataset(found, self.transformer)
 
