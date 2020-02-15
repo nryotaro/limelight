@@ -4,6 +4,7 @@ import os.path
 import csv
 import re
 from dataclasses import dataclass
+from collections.abc import Sequence
 from typing import List, Callable
 import torch.utils.data as d
 from .theme import Theme
@@ -72,7 +73,15 @@ class DataPointMeta:
 
 @dataclass
 class DataPointSource:
-    """Represent the location of a data point."""
+    """Represent the location of a data point.
+
+    Attributes
+    ----------
+    directory: str
+
+    data_point_meta: DataPointMeta
+
+    """
 
     directory: str
     data_point_meta: DataPointMeta
@@ -100,7 +109,13 @@ class DataPointSource:
 
 @dataclass
 class DataPointSources(FirstClassSequence):
-    """A collection of :py:class:`DataPointSource`s."""
+    """A collection of :py:class:`DataPointSource`s.
+
+    Attributes
+    ----------
+    items: List[DataPointSource]
+
+    """
 
     items: List[DataPointSource]
 
@@ -127,6 +142,7 @@ class DataPointSources(FirstClassSequence):
         """Read a file from `filename` into :py:class:`DataPointSources`."""
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile, fieldnames=cls._fieldnames())
+            next(reader)
             return DataPointSources(
                 [DataPointSource.from_dict(record) for record in reader])
 
@@ -162,7 +178,7 @@ class NopTransformer:
 
 
 @dataclass
-class Dataset(d.Dataset):
+class Dataset(d.Dataset, Sequence):
     """20newsgroups dataset.
 
     Attributes

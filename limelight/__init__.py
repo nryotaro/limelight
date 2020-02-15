@@ -2,6 +2,7 @@
 import click
 from greentea.log import LogConfiguration
 from torchvision.transforms import Compose
+import torch.utils.data.dataloader as d
 from .dataset import Dataset, DataPointSources, \
     TextTransformer, RawTransformer
 from .vectorizer import TfidfVectorizer

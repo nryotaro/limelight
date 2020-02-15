@@ -1,13 +1,11 @@
 """gathers utilities to build feature vectors from text documents."""
 import abc
-from collections.abc import Sequence
 import joblib
 import sklearn.feature_extraction.text as t
 
 
 class Vectorizer(metaclass=abc.ABCMeta):
-    """
-    """
+    """Transform texts to feature vectors."""
 
     @abc.abstractmethod
     def fit(self, texts):
@@ -40,8 +38,8 @@ class TfidfVectorizer(Vectorizer):
         texts: : Sequence[str]
 
         """
-
         self.vectorizer.fit(texts)
 
     def dump(self, filename):
+        """Write itself to `filename`."""
         joblib.dump(self, filename)
