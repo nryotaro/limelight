@@ -7,7 +7,7 @@ setup(name='limelight',
       packages=find_packages(),
       install_requires=[
           'torch',
-          'greentea==3.5.3',
+          'greentea==3.8.0',
           'click',
           'requests',
           'tqdm',
