@@ -2,6 +2,7 @@
 """
 import enum
 from typing import List
+from dataclasses import dataclass
 
 
 class Theme(enum.Enum):
@@ -57,3 +58,15 @@ class Theme(enum.Enum):
         if len(found) == 1:
             return found[0]
         raise ValueError(f'{theme} is not a theme name')
+
+
+@dataclass
+class Themes:
+    """A collection of :py:class:`Themes`."""
+
+    themes: List[Theme]
+
+    def get_index(self) -> List[int]:
+        """
+        """
+        raise NotImplementedError

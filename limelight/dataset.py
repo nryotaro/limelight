@@ -6,7 +6,7 @@ import re
 import codecs
 from dataclasses import dataclass
 from collections.abc import Sequence
-from typing import List, Callable
+from typing import List, Callable, Tuple
 import torch.utils.data as d
 from .theme import Theme
 from .types import T
@@ -107,6 +107,10 @@ class DataPointSource:
         meta = DataPointMeta.from_dict(source)
         return DataPointSource(source['directory'], meta)
 
+    def get_theme(self) -> Theme:
+        """Return the theme."""
+        return self.data_point_meta.theme
+
 
 @dataclass
 class DataPointSources(FirstClassSequence):
@@ -166,6 +170,17 @@ class RawTransformer:
     def __call__(self, text: Text) -> str:
         """Transfrom :py:class:`Text` to str."""
         return text.text
+
+
+class RawTextThemeTransformer:
+    """Transform a :py:class:`DataPointSourbce`."""
+
+    def __call__(
+            self, data_point_source: DataPointSource) -> Tuple[str, Theme]:
+        """Return a tuple of `str` and :py:class:`Theme`."""
+        text = data_point_source.read_text()
+        theme = data_point_source.get_theme()
+        return (text.text, theme)
 
 
 class NopTransformer:

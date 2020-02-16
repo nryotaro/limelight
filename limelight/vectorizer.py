@@ -6,6 +6,7 @@ import sklearn.feature_extraction.text as t
 import sklearn.feature_selection as s
 import sklearn.linear_model as li
 from .vector import TextVectors, SparseTextVectors
+from .theme import Themes
 
 
 class Vectorizer(metaclass=abc.ABCMeta):
@@ -81,12 +82,12 @@ class FeatureSelectedVectorizer(Vectorizer):
         self.vectorizer = vectorizer
         self.select_from_model = select_from_model
 
-    def fit(self, texts, themes, **kwargs):
+    def fit(self, texts, themes: Themes, **kwargs):
         """
         """
         txts = Texts(texts)
         feature_vectors = self.vectorizer.transform(txts)
-        
+        self.select_from_model.fit(feature_vectors, themes.get_index())
 
     @classmethod
     def create_lasso(cls, vectorizer, max_features: int):

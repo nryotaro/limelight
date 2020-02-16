@@ -35,3 +35,10 @@ def sparsevec(train: DataPointSources, location: str):
     vectorizer = TfidfVectorizer()
     vectorizer.fit(texts)
     vectorizer.dump(location)
+
+
+@click.argument('train', type=DataPointSources.read_csv)
+@click.argument('location')
+def featuresel(train, DataPointSources, location: str):
+    transformer = Compose([TextTransformer(), RawTransformer()])
+    texts = Dataset(train, transformer)
