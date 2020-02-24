@@ -5,7 +5,7 @@ from greentea.text import Texts
 import sklearn.feature_extraction.text as t
 import sklearn.feature_selection as s
 import sklearn.ensemble as e
-from .vector import TextVectors, SparseTextVectors
+from .vector import TextVectors, SparseTextVectors, DenseTextVectors
 from .theme import Themes
 
 
@@ -34,7 +34,8 @@ class Vectorizer(metaclass=abc.ABCMeta):
         """Write this object to a file."""
         joblib.dump(self, filename)
 
-    def load(self, filename: str):
+    @classmethod
+    def load(cls, filename: str):
         """Load a :py:class:`Vectorizer` from `filename`."""
         return joblib.load(filename)
 
@@ -88,11 +89,14 @@ class FeatureSelectedVectorizer(Vectorizer):
         self
 
         """
-        raw_texts = texts.raw_texts()
-        feature_vectors = self.vectorizer.transform(raw_texts)
+        feature_vectors = self.vectorizer.transform(texts)
         raw_feature_vectors = feature_vectors.raw()
         matrix = themes.get_index_matrix()
         return self.select_from_model.fit(raw_feature_vectors, matrix)
+
+    def transform(self, texts: Texts) -> DenseTextVectors:
+        """Transform texts to feature vectors."""
+        raise NotImplementedError
 
     @classmethod
     def create_random_forest(

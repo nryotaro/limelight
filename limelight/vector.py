@@ -12,6 +12,14 @@ class TextVectors(metaclass=abc.ABCMeta):
         """Return the matrix that represent feature vectors.."""
 
 
+class DenseTextVectors(TextVectors):
+    """
+    """
+
+    def __init__(self):
+        pass
+    
+        
 class SparseTextVectors(TextVectors):
     """
     """

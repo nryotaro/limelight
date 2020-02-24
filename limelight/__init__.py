@@ -32,8 +32,11 @@ def split(dataset, train: str, test: str):
 @click.argument('train', type=DataPointSources.read_csv)
 @click.argument('location')
 def sparsevec(train: DataPointSources, location: str):
-    """Train a sparse vectorizer."""
-    texts = Dataset(train, TextTransformer())
+    """Train a sparse vectorizer.
+
+    TRAIN   A CSV file that the `split` subcommnad emitted.
+    """
+    texts = Texts(Dataset(train, TextTransformer()))
     vectorizer = TfidfVectorizer()
     vectorizer.fit(texts)
     vectorizer.dump(location)
