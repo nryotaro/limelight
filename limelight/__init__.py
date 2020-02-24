@@ -31,8 +31,7 @@ def split(dataset, train: str, test: str):
 @click.argument('location')
 def sparsevec(train: DataPointSources, location: str):
     """Train a sparse vectorizer."""
-    transformer = Compose([TextTransformer(), RawTransformer()])
-    texts = Dataset(train, transformer)
+    texts = Dataset(train, TextTransformer())
     vectorizer = TfidfVectorizer()
     vectorizer.fit(texts)
     vectorizer.dump(location)

@@ -47,15 +47,16 @@ class TfidfVectorizer(Vectorizer):
         """Create a TfidfVectorizer object."""
         self.vectorizer = t.TfidfVectorizer()
 
-    def fit(self, texts, themes=None, **kwargs):
+    def fit(self, texts: Texts, themes=None, **kwargs):
         """Overwrite the parent method.
 
         Parameters
         ----------
-        texts: Sequence[str]
+        texts: Texts
 
         """
-        return self.vectorizer.fit(texts)
+        raw_texts = texts.raw_texts()
+        return self.vectorizer.fit(raw_texts)
 
     def transform(self, texts: Texts) -> SparseTextVectors:
         """Transform texts to feature vectors."""
@@ -79,24 +80,29 @@ class FeatureSelectedVectorizer(Vectorizer):
             self,
             vectorizer: Vectorizer,
             select_from_model: s.SelectFromModel):
-        """
-        """
+        """Take a :py:class:`Vectorizer` and :py:class:`SelectFromModel`."""
         self.vectorizer = vectorizer
         self.select_from_model = select_from_model
 
-    def fit(self, texts, themes: Themes, **kwargs):
+    def fit(self, texts: Texts, themes: Themes, **kwargs):
         """Fit the `FeatureSelectedVectorizer`.
 
         Parameters
         ----------
-        texts: Sequence[str]
+        texts: Texts
 
         themes: Themes
 
+        Returns
+        -------
+        self
+
         """
-        txts = Texts(texts)
-        feature_vectors = self.vectorizer.transform(txts)
-        self.select_from_model.fit(feature_vectors, themes.get_index())
+        raw_texts = texts.raw_texts()
+        feature_vectors = self.vectorizer.transform(raw_texts)
+        raw_feature_vectors = feature_vectors.raw()
+        matrix = themes.get_index_matrix()
+        return self.select_from_model.fit(raw_feature_vectors, matrix)
 
     @classmethod
     def create_random_forrest(
