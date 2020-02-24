@@ -2,8 +2,9 @@
 import click
 from greentea.log import LogConfiguration
 from torchvision.transforms import Compose
-from .dataset import Dataset, DataPointSources, \
-    TextTransformer, RawTransformer
+from .news import DataPointSources
+from .dataset import Dataset
+from .transformer import TextTransformer, RawTransformer
 from .vectorizer import TfidfVectorizer
 
 
@@ -40,5 +41,7 @@ def sparsevec(train: DataPointSources, location: str):
 @click.argument('train', type=DataPointSources.read_csv)
 @click.argument('location')
 def featuresel(train, DataPointSources, location: str):
+    """
+    """
     transformer = Compose([TextTransformer(), RawTransformer()])
     texts = Dataset(train, transformer)

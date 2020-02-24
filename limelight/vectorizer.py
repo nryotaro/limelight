@@ -4,6 +4,7 @@ import joblib
 from greentea.text import Texts
 import sklearn.feature_extraction.text as t
 import sklearn.feature_selection as s
+import sklearn.ensemble as e
 import sklearn.linear_model as li
 from .vector import TextVectors, SparseTextVectors
 from .theme import Themes
@@ -26,6 +27,7 @@ class Vectorizer(metaclass=abc.ABCMeta):
 
         """
 
+    @abc.abstractmethod
     def transform(self, texts: Texts) -> TextVectors:
         """Transform texts to feature vectors."""
 
@@ -83,19 +85,27 @@ class FeatureSelectedVectorizer(Vectorizer):
         self.select_from_model = select_from_model
 
     def fit(self, texts, themes: Themes, **kwargs):
-        """
+        """Fit the `FeatureSelectedVectorizer`.
+
+        Parameters
+        ----------
+        texts: Sequence[str]
+
+        themes: Themes
+
         """
         txts = Texts(texts)
         feature_vectors = self.vectorizer.transform(txts)
         self.select_from_model.fit(feature_vectors, themes.get_index())
 
     @classmethod
-    def create_lasso(cls, vectorizer, max_features: int):
+    def create_random_forrest(
+            cls, vectorizer: Vectorizer, max_features: int):
         """Create a :py:class:`FeatureSelectedVectorizer`.
 
-        It uses a Lasso model as estimator.
+        It uses a `RandomForestClassifier` as a base estimator.
 
         """
-        estimator = li.Lasso()
+        estimator = e.RandomForestClassifier()
         selector = s.SelectFromModel(estimator, max_features)
         return FeatureSelectedVectorizer(vectorizer, selector)

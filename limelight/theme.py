@@ -1,8 +1,8 @@
-"""
-"""
+"""Expose classes relevant to labels."""
 import enum
 from typing import List
 from dataclasses import dataclass
+import numpy as np
 
 
 class Theme(enum.Enum):
@@ -59,6 +59,11 @@ class Theme(enum.Enum):
             return found[0]
         raise ValueError(f'{theme} is not a theme name')
 
+    @classmethod
+    def num_of_themes(cls):
+        """Return the number of themes."""
+        return len(cls)
+
 
 @dataclass
 class Themes:
@@ -66,7 +71,15 @@ class Themes:
 
     themes: List[Theme]
 
+    def get_index_matrix(self) -> np.ndarray:
+        """Return array-like of shape (n_samples, n_outputs)."""
+        index = self.get_index()
+        return np.identity(Theme.num_of_themes())[index].astype(np.int32)
+
     def get_index(self) -> List[int]:
-        """
-        """
-        raise NotImplementedError
+        """Return the index."""
+        return [theme.value for theme in self.themes]
+
+    def __len__(self) -> int:
+        """Return the size."""
+        return len(self.themes)
