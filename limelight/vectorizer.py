@@ -5,7 +5,6 @@ from greentea.text import Texts
 import sklearn.feature_extraction.text as t
 import sklearn.feature_selection as s
 import sklearn.ensemble as e
-import sklearn.linear_model as li
 from .vector import TextVectors, SparseTextVectors
 from .theme import Themes
 
@@ -31,13 +30,13 @@ class Vectorizer(metaclass=abc.ABCMeta):
     def transform(self, texts: Texts) -> TextVectors:
         """Transform texts to feature vectors."""
 
-    @abc.abstractmethod
     def dump(self, filename: str):
         """Write this object to a file."""
+        joblib.dump(self, filename)
 
-    @abc.abstractmethod
     def load(self, filename: str):
         """Load a :py:class:`Vectorizer` from `filename`."""
+        return joblib.load(filename)
 
 
 class TfidfVectorizer(Vectorizer):
@@ -63,18 +62,9 @@ class TfidfVectorizer(Vectorizer):
         vectors = self.vectorizer.transform(texts.raw_texts())
         return SparseTextVectors(vectors.astype('float32'))
 
-    def dump(self, filename):
-        """Write itself to `filename`."""
-        joblib.dump(self, filename)
-
-    def load(self, filename):
-        """Overwrite the parent method."""
-        return joblib.load(filename)
-
 
 class FeatureSelectedVectorizer(Vectorizer):
-    """
-    """
+    """Apply feature selection to a base :py:class:`Vectorizer`."""
 
     def __init__(
             self,
@@ -105,7 +95,7 @@ class FeatureSelectedVectorizer(Vectorizer):
         return self.select_from_model.fit(raw_feature_vectors, matrix)
 
     @classmethod
-    def create_random_forrest(
+    def create_random_forest(
             cls, vectorizer: Vectorizer, max_features: int):
         """Create a :py:class:`FeatureSelectedVectorizer`.
 

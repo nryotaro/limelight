@@ -1,11 +1,13 @@
 """Expose the entrypoints."""
 import click
+import numpy as np
 from greentea.log import LogConfiguration
-from torchvision.transforms import Compose
+from greentea.text import Texts
+from .theme import Themes
 from .news import DataPointSources
 from .dataset import Dataset
-from .transformer import TextTransformer, RawTransformer
-from .vectorizer import TfidfVectorizer
+from .transformer import TextTransformer, TextThemeTransformer
+from .vectorizer import TfidfVectorizer, Vectorizer, FeatureSelectedVectorizer
 
 
 @click.group()
@@ -37,10 +39,17 @@ def sparsevec(train: DataPointSources, location: str):
     vectorizer.dump(location)
 
 
+@main.command()
 @click.argument('train', type=DataPointSources.read_csv)
+@click.argument('vectorizer', type=Vectorizer.load)
 @click.argument('location')
-def featuresel(train, DataPointSources, location: str):
+def featuresel(train, vectorizer, location: str):
     """
     """
-    transformer = Compose([TextTransformer(), RawTransformer()])
-    texts = Dataset(train, transformer)
+    dataset = np.array(Dataset(train, TextThemeTransformer()))
+    texts = Texts(dataset[:, 0])
+    themes = Themes(dataset[:, 1])
+    train_vectorizer = FeatureSelectedVectorizer.create_random_forest(
+        vectorizer, 20000)
+    train_vectorizer.fit(texts, themes)
+    train_vectorizer.dump(location)
