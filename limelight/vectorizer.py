@@ -3,6 +3,7 @@ import abc
 import joblib
 from greentea.text import Texts
 import sklearn.feature_extraction.text as t
+import sklearn.linear_model as li
 import sklearn.feature_selection as s
 import sklearn.ensemble as e
 from .vector import TextVectors, SparseTextVectors, DenseTextVectors
@@ -110,5 +111,17 @@ class FeatureSelectedVectorizer(Vectorizer):
 
         """
         estimator = e.RandomForestClassifier()
+        selector = s.SelectFromModel(estimator, max_features)
+        return FeatureSelectedVectorizer(vectorizer, selector)
+
+    @classmethod
+    def create_random_forest(
+            cls, vectorizer: Vectorizer, max_features: int):
+        """Create a :py:class:`FeatureSelectedVectorizer`.
+
+        It uses a `RandomForestClassifier` as a base estimator.
+
+        """
+        estimator = li.LogisticRegression()
         selector = s.SelectFromModel(estimator, max_features)
         return FeatureSelectedVectorizer(vectorizer, selector)

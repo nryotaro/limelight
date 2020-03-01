@@ -83,3 +83,10 @@ class Themes:
     def __len__(self) -> int:
         """Return the size."""
         return len(self.themes)
+
+    def __getitem__(self, index):
+        """Access items with a key."""
+        found = self.themes.__getitem__(index)
+        if isinstance(found, Theme):
+            return found
+        return Themes(found)
