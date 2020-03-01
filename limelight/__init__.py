@@ -55,3 +55,11 @@ def featuresel(train, vectorizer, location: str):
         vectorizer, 20000)
     train_vectorizer.fit(texts, themes)
     train_vectorizer.dump(location)
+
+
+@main.command()
+@click.argument('vectorizer', type=Vectorizer.load)
+@click.argument('train', type=Dataset.read_sources_from_csv)
+@click.argument('location')
+def train(vectorizer, train, location):
+    """Train a classifier."""

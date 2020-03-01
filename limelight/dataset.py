@@ -44,7 +44,7 @@ class Dataset(d.Dataset, Sequence):
         return Dataset(self.sources, transformer)
 
     @classmethod
-    def create(cls, dirname: str, transformer=NopTransformer):
+    def create(cls, dirname: str, transformer=NopTransformer()):
         """Create :py:class:`Dataset` from a directory."""
         abs_dirname = os.path.abspath(dirname)
         sources = DataPointSources(
@@ -68,7 +68,7 @@ class Dataset(d.Dataset, Sequence):
     def read_sources_from_csv(
             cls,
             filename: str,
-            transformer=NopTransformer):
+            transformer=NopTransformer()):
         """Read :py:class:`Dataset` from a file."""
         sources = DataPointSources.read_csv(filename)
         return Dataset(sources, transformer)
