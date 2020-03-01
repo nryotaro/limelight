@@ -47,8 +47,7 @@ def sparsevec(train: DataPointSources, location: str):
 @click.argument('vectorizer', type=Vectorizer.load)
 @click.argument('location')
 def featuresel(train, vectorizer, location: str):
-    """
-    """
+    """Create a vectorizer apply Feature selection to a base vectorizer."""
     dataset = np.array(Dataset(train, TextThemeTransformer()))
     texts = Texts(dataset[:, 0])
     themes = Themes(dataset[:, 1])

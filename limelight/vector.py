@@ -16,18 +16,30 @@ class DenseTextVectors(TextVectors):
     """
     """
 
-    def __init__(self):
-        pass
-    
-        
+    def __init__(self, dense_vectors):
+        """
+        """
+        self.vectors = dense_vectors
+
+    def raw(self):
+        """Return the holding dense matrix."""
+        return self.vectors
+
+
 class SparseTextVectors(TextVectors):
     """
     """
 
     def __init__(self, sparse_vectors):
         """
+
+        Parameters
+        ----------
+        sparse_vectors
+
         """
         self.vectors = sparse_vectors
 
     def raw(self):
+        """Return the holding sparse matrix."""
         return self.vectors

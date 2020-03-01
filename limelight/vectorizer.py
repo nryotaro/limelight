@@ -96,7 +96,10 @@ class FeatureSelectedVectorizer(Vectorizer):
 
     def transform(self, texts: Texts) -> DenseTextVectors:
         """Transform texts to feature vectors."""
-        raise NotImplementedError
+        sparse_vectors = self.vectorizer.transform(texts)
+        raw_vectors = sparse_vectors.raw()
+        dense_vectors = self.select_from_model.transform(raw_vectors)
+        return DenseTextVectors(dense_vectors)
 
     @classmethod
     def create_random_forest(
