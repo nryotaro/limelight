@@ -7,8 +7,11 @@ from .theme import Themes
 from .news import DataPointSources
 from .dataset import Dataset
 from .transformer import TextTransformer, TextThemeTransformer
-from .vectorizer import TfidfVectorizer, Vectorizer, FeatureSelectedVectorizer
-from .classifier import MlpClassifier
+from .vectorizer import \
+    TfidfVectorizer, \
+    Vectorizer, \
+    FeatureSelectedVectorizer, \
+    LogisticRegressionFsVectorizer
 
 
 @click.group()
@@ -52,9 +55,9 @@ def featuresel(train, vectorizer, location: str):
     dataset = np.array(Dataset(train, TextThemeTransformer()))
     texts = Texts(dataset[:, 0])
     themes = Themes(dataset[:, 1])
-
-    train_vectorizer = FeatureSelectedVectorizer.create_random_forest(
-        vectorizer, 20000)
+    train_vectorizer = LogisticRegressionFsVectorizer.create(
+        vectorizer, 20000
+    )
     train_vectorizer.fit(texts, themes)
     train_vectorizer.dump(location)
 

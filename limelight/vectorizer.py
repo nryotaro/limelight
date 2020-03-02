@@ -65,7 +65,7 @@ class TfidfVectorizer(Vectorizer):
         return SparseTextVectors(vectors.astype('float32'))
 
 
-class FeatureSelectedVectorizer(Vectorizer):
+class FeatureSelectedVectorizer(Vectorizer, metaclass=abc.ABCMeta):
     """Apply feature selection to a base :py:class:`Vectorizer`."""
 
     def __init__(
@@ -92,7 +92,7 @@ class FeatureSelectedVectorizer(Vectorizer):
         """
         feature_vectors = self.vectorizer.transform(texts)
         raw_feature_vectors = feature_vectors.raw()
-        matrix = themes.get_index_matrix()
+        matrix = self.get_targets(themes)
         return self.select_from_model.fit(raw_feature_vectors, matrix)
 
     def transform(self, texts: Texts) -> DenseTextVectors:
@@ -102,26 +102,45 @@ class FeatureSelectedVectorizer(Vectorizer):
         dense_vectors = self.select_from_model.transform(raw_vectors)
         return DenseTextVectors(dense_vectors)
 
+    @abc.abstractmethod
+    def get_targets(self, themes: Themes):
+        """Return the target that the base estimator can accept."""
+
     @classmethod
-    def create_random_forest(
-            cls, vectorizer: Vectorizer, max_features: int):
+    def create_from_estimator(
+            cls, estimator, vectorizer: Vectorizer, max_features: int):
+        """Create a subclass object."""
+        selector = s.SelectFromModel(estimator, max_features)
+        return cls(vectorizer, selector)
+
+
+class RandomForestFSVectorizer(FeatureSelectedVectorizer):
+    """Use a Random forest classifier as a base classifier."""
+
+    def get_targets(self, themes: Themes):
+        """Get targets."""
+        return themes.get_index_matrix()
+
+    @classmethod
+    def create(cls, vectorizer: Vectorizer, max_features: int):
         """Create a :py:class:`FeatureSelectedVectorizer`.
 
         It uses a `RandomForestClassifier` as a base estimator.
 
         """
         estimator = e.RandomForestClassifier()
-        selector = s.SelectFromModel(estimator, max_features)
-        return FeatureSelectedVectorizer(vectorizer, selector)
+        return cls.create_from_estimator(estimator, vectorizer, max_features)
+
+
+class LogisticRegressionFsVectorizer(FeatureSelectedVectorizer):
+    """Use LogisticRegression as a base estimator."""
+
+    def get_targets(self, themes: Themes):
+        """Convert `themes` to targets."""
+        return themes.get_index()
 
     @classmethod
-    def create_random_forest(
-            cls, vectorizer: Vectorizer, max_features: int):
-        """Create a :py:class:`FeatureSelectedVectorizer`.
-
-        It uses a `RandomForestClassifier` as a base estimator.
-
-        """
-        estimator = li.LogisticRegression()
-        selector = s.SelectFromModel(estimator, max_features)
-        return FeatureSelectedVectorizer(vectorizer, selector)
+    def create(cls, vectorizer: Vectorizer, max_features: int):
+        """Create an object."""
+        return cls.create_from_estimator(
+            li.LogisticRegression(), vectorizer, max_features)

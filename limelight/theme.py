@@ -77,7 +77,14 @@ class Themes:
         return np.identity(Theme.num_of_themes())[index].astype(np.int32)
 
     def get_index(self) -> List[int]:
-        """Return the index."""
+        """Return the index.
+
+        Returns
+        -------
+        list
+            Each item is an `int`-typed ID.
+
+        """
         return [theme.value for theme in self.themes]
 
     def __len__(self) -> int:
