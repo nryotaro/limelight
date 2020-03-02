@@ -25,12 +25,18 @@ class TestLogisticRegressionFsVectorizer(TestVectorizer):
 
     def test_create_from_estimator(self):
         vectorizer = MagicMock(spec=v.Vectorizer)
-
         estimator = li.LogisticRegression()
+        max_features = 20000
+
         actual = v.LogisticRegressionFsVectorizer.create_from_estimator(
-            estimator, vectorizer, 2000)
+            estimator, vectorizer, max_features)
 
         self.assertIsInstance(
             actual,
             v.LogisticRegressionFsVectorizer,
             'The class of the returned object is same as that of callee.')
+
+        self.assertEqual(
+            actual.select_from_model.max_features,
+            max_features,
+            'The third argument constraints the number of the features.')

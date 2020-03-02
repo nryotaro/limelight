@@ -110,7 +110,7 @@ class FeatureSelectedVectorizer(Vectorizer, metaclass=abc.ABCMeta):
     def create_from_estimator(
             cls, estimator, vectorizer: Vectorizer, max_features: int):
         """Create a subclass object."""
-        selector = s.SelectFromModel(estimator, max_features)
+        selector = s.SelectFromModel(estimator, max_features=max_features)
         return cls(vectorizer, selector)
 
 
