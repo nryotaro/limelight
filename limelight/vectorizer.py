@@ -40,6 +40,10 @@ class Vectorizer(metaclass=abc.ABCMeta):
         """Load a :py:class:`Vectorizer` from `filename`."""
         return joblib.load(filename)
 
+    @abc.abstractmethod
+    def get_num_of_features(self):
+        """Return the number of features."""
+
 
 class TfidfVectorizer(Vectorizer):
     """TfidfVectorizer."""
@@ -63,6 +67,10 @@ class TfidfVectorizer(Vectorizer):
         """Transform texts to feature vectors."""
         vectors = self.vectorizer.transform(texts.raw_texts())
         return SparseTextVectors(vectors.astype('float32'))
+
+    def get_num_of_features(self):
+        """Return the number of features."""
+        raise NotImplementedError
 
 
 class FeatureSelectedVectorizer(Vectorizer, metaclass=abc.ABCMeta):
@@ -112,6 +120,10 @@ class FeatureSelectedVectorizer(Vectorizer, metaclass=abc.ABCMeta):
         """Create a subclass object."""
         selector = s.SelectFromModel(estimator, max_features=max_features)
         return cls(vectorizer, selector)
+
+    def get_num_of_features(self):
+        """Return the number of features."""
+        raise NotImplementedError
 
 
 class RandomForestFSVectorizer(FeatureSelectedVectorizer):

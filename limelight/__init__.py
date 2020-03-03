@@ -68,3 +68,5 @@ def featuresel(train, vectorizer, location: str):
 @click.argument('location')
 def train(vectorizer, train, location):
     """Train a classifier."""
+    number_of_features = vectorizer.get_num_of_features()
+
