@@ -6,6 +6,7 @@ from greentea.text import Texts
 from .theme import Themes
 from .news import DataPointSources
 from .dataset import Dataset
+from .downloader import Initializer
 from .transformer import TextTransformer, TextThemeTransformer
 from .vectorizer import \
     TfidfVectorizer, \
@@ -19,6 +20,17 @@ from .vectorizer import \
 def main(verbose: bool):
     """Group."""
     LogConfiguration(verbose, 'limelight').configure()
+
+
+@main.command()
+@click.argument('destination')
+def download(destination: str):
+    """Download 20newsgroups dataset.
+
+    DESTINATION    directory.
+
+    """
+    Initializer(destination).prepare()
 
 
 @main.command()
